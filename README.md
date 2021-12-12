@@ -1,1 +1,114 @@
 # Car-Parking-sensor
+#include <LiquidCrystal.h>
+int redPin = 10;
+int yellowPin = 13;
+int triggerPin = 7;
+int piezoPin = 8;
+long time;
+long distance;
+// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+void setup() {
+  // set up the LCD's number of columns and rows:
+  pinMode(redPin, OUTPUT);
+  pinMode(yellowPin, OUTPUT);
+  lcd.begin(16, 2);
+  // Print a message to the LCD.
+  
+  Serial.begin(9600);
+}
+
+void printScreen(long distance)
+{
+  
+  // Print a message to the serial monitor.
+  Serial.print("Distance: ");
+  if(distance >= 100){
+  	Serial.print(distance/100);
+    Serial.print(" m");
+    Serial.print("\n");
+    Serial.print("It is far.");
+  }
+  else if(distance >= 20 && distance <100 ){
+    Serial.print(distance);
+    Serial.print(" cm");
+    Serial.print("\n");
+    Serial.print("It is close.");
+  }
+  else if(distance < 20){
+    Serial.print(distance);
+    Serial.print(" cm");
+    Serial.print("\n");
+    Serial.print("It is too close.");
+  }
+  Serial.print("\n");
+}
+void loop() {
+  //clear trigger pin
+  pinMode(triggerPin, OUTPUT);
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(5);
+  // set trigger pin high for 10 micro secs
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+  pinMode(triggerPin, INPUT);
+  // read echo pin and return the soundwave travel time
+  time = pulseIn(triggerPin, HIGH);
+  // calculate the distance
+  distance= time*0.034/2;
+  printScreen(distance);
+  if (distance >= 100){
+	tone(piezoPin,1000,250);
+    delay(400);
+    digitalWrite(yellowPin, HIGH); 
+    delay(200);
+    digitalWrite(yellowPin, LOW); 
+    delay(200);
+    lcd.setCursor(0, 0);
+    lcd.print("It is far.      ");
+    lcd.setCursor(0, 1);
+  	lcd.print("Distance: ");
+    lcd.print(distance / 100);
+    lcd.print("m         ");
+
+  }
+  else{
+    digitalWrite(yellowPin, LOW);
+    tone(piezoPin,1000,400);
+    delay(100);
+    digitalWrite(redPin, HIGH); 
+    delay(200);
+    digitalWrite(redPin, LOW); 
+    delay(200);
+    if(distance >= 20 && distance <100 ){
+      lcd.setCursor(0, 0);
+      lcd.print("It is close.      ");
+      lcd.setCursor(0, 1);
+  	  lcd.print("Distance: ");
+      lcd.print(distance);
+      lcd.print("cm        ");
+
+    }
+    else if(distance < 20 && distance >5){
+      lcd.setCursor(0, 0);
+      lcd.print("It is too close.      ");
+      lcd.setCursor(0, 1);
+  	  lcd.print("Distance: ");
+      lcd.print(distance);
+      lcd.print("cm        ");
+      
+
+    }
+    else if(distance <= 5){
+      lcd.setCursor(0, 0);
+      lcd.print("Itiswaytooclose.      ");
+      lcd.setCursor(0, 1);
+  	  lcd.print("Distance: ");
+      lcd.print(distance);
+      lcd.print("cm        ");
+            
+    }
+  }
+}
